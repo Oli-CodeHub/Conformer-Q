@@ -1,35 +1,31 @@
 # Conformer-Q
 
-低能构象探索与量子性质分析工作台。首个案例为蚜虫报警信息素
-`(E)-beta-farnesene` (`EBF`, PubChem CID `5281517`)。
+Conformer-Q is a workbench for low-energy conformer exploration and quantum-chemical property analysis. The first example is the aphid alarm pheromone `(E)-beta-farnesene` (`EBF`, PubChem CID `5281517`).
 
-当前版本面向 macOS Apple Silicon（`arm64`）。工作台源码不捆绑 Ketcher、CREST、xTB
-或 ORCA；这些第三方程序需要用户按照下方说明自行安装并遵守各自许可证。
+The current release targets macOS Apple Silicon (`arm64`). The source tree does not bundle Ketcher, CREST, xTB, or ORCA. Install these third-party programs separately and follow their respective licenses.
 
-## 当前功能
+## Features
 
-- 内置 EBF 的 isomeric SMILES 样例，也支持输入其他 SMILES。
-- 建模页复用本地 `Ketcher` 绘制器，可读取绘制结构后由 RDKit 标准化并确认协议。
-- 使用 RDKit 计算分子式、分子量、cLogP、TPSA、氢键和可旋转键等属性。
-- 自动诊断柔性链、环系、宏环、螺环/桥环、潜在分子内氢键、电荷与特殊元素风险。
-- 研究搜索模式使用 `CREST iMTD-GC + GFN2-xTB` 寻找低能构象集合。
-- 新建计算时可确认低能构象采样环境：气相或 `ALPB(water)` 隐式水环境；该条件实际传递给 CREST 并纳入任务去重。
-- 页面默认采用降低采样规模的 CREST 快速研究搜索；完整 `iMTD-GC` 由用户主动选择。
-- 长耗时研究搜索提交后进入任务中心，可关闭当前结果页面后继续查看进度、停止任务或打开已完成结果。
-- 同一规范结构、计算协议与形式电荷会生成任务指纹；运行中或已完成的重复提交复用原任务，不重新消耗计算资源。
-- 任务中心显示预计耗时和剩余时间；CREST 首次按结构复杂度估算，之后可使用相同任务的历史完成耗时。ORCA 初始按入选代表构象数量估算，在已有构象完成后改以实际观测耗时动态更新 ETA；新任务会记录逐构象耗时。
-- 快速预览模式使用 `ETKDGv3 + MMFF94`，仅用于即时查看和前置粗筛。
-- 使用本地 `3Dmol.js` 交互显示具体三维结构，可按能量排名切换构象与显示样式。
-- 结果页提供构象集合分析：按相对能量窗口筛选，以结构类型推荐 `TFD` 或重原子 `RMSD` 聚类，并查看每个家族的最低能代表。
-- ORCA 结果页可对选定精修构象生成 ESP、经验疏水势、HOMO 与 LUMO 三维图，调节色标/等值面并导出带图例的 PNG 图片。
-- ORCA 结果页可将当前构象及勾选的低能系综发送至独立 `Molecular_Derivative_Designer`，作为三维衍生设计模板。
-- 导出包含三维构象的 `SDF` 以及能量排序 `CSV`。
+- Includes an isomeric SMILES example for EBF and accepts other SMILES inputs.
+- Reuses a local Ketcher editor for molecular drawing, then normalizes and validates the structure with RDKit.
+- Calculates molecular formula, molecular weight, cLogP, TPSA, hydrogen-bond counts, rotatable bonds, and related properties with RDKit.
+- Diagnoses flexible chains, rings, macrocycles, spiro/bridged systems, possible intramolecular hydrogen bonds, formal charges, and unusual-element risks.
+- Uses `CREST iMTD-GC + GFN2-xTB` to search for low-energy conformer ensembles.
+- Supports gas-phase and `ALPB(water)` implicit-water conformer searches. The selected environment is passed to CREST and included in task deduplication.
+- Uses a reduced CREST quick-search preset by default; users can explicitly select a full `iMTD-GC` search.
+- Sends long-running searches to a task center so users can monitor progress, stop tasks, or reopen completed results.
+- Generates a task fingerprint from the normalized structure, computational protocol, and formal charge. Duplicate submissions reuse running or completed tasks.
+- Displays estimated and remaining time. CREST estimates are initially based on structural complexity and can later use historical runtimes for similar tasks. ORCA estimates start from the number of selected representative conformers and update dynamically from observed runtimes.
+- Provides `ETKDGv3 + MMFF94` quick previews for immediate inspection and coarse screening.
+- Uses local `3Dmol.js` for interactive three-dimensional conformer viewing, energy-ranked switching, and display-style control.
+- Analyzes conformer ensembles by relative-energy windows, recommending `TFD` or heavy-atom `RMSD` clustering based on structural type, and shows the lowest-energy representative of each family.
+- Generates 3D ESP, empirical hydrophobic-potential, HOMO, and LUMO maps for selected ORCA-refined conformers, with adjustable color scales/isosurfaces and PNG export.
+- Sends the current conformer and selected low-energy ensemble to the optional `Molecular_Derivative_Designer` integration as a 3D design template.
+- Exports 3D conformers as `SDF` and energy-ranked results as `CSV`.
 
-`CREST/GFN2-xTB` 能明显增强低能区域探索能力，但仍不等于数学上穷尽连续势能面。
-低能构象集合也不等同于蛋白结合构象，不能直接证明生物活性。重点候选构象应进一步
-使用 `ORCA` 的 DFT 或更高级方法精修和重排序。
+`CREST/GFN2-xTB` improves exploration of low-energy regions, but it is not a mathematical enumeration of the continuous potential-energy surface. A low-energy conformer ensemble is not equivalent to a protein-bound conformation and does not prove biological activity. Important candidates should be further refined and re-ranked with ORCA DFT or a higher-level method.
 
-## 启动
+## Start the application
 
 ```bash
 cd Conformer-Q
@@ -37,207 +33,167 @@ python3 -m pip install -r requirements-dev.txt
 python3 app.py
 ```
 
-浏览器打开 <http://127.0.0.1:5062/>，服务会进入建模提交页 `/build`。
-后台任务列表位于 <http://127.0.0.1:5062/tasks>。
+Open <http://127.0.0.1:5062/> in a browser. The modeling and submission page is available at `/build`; the background task list is available at <http://127.0.0.1:5062/tasks>.
 
-也可以双击 `启动 Conformer-Q.command`。启动器只检查 Python、Flask 和 RDKit；缺少
-Ketcher、CREST、xTB 或 ORCA 时，基础结构诊断和即时预览仍可使用，对应的高级功能
-会在页面中提示安装方式。
+You can also double-click the Conformer-Q launcher script. The launcher checks only Python, Flask, and RDKit. If Ketcher, CREST, xTB, or ORCA is missing, structure diagnostics and quick previews remain available and the corresponding advanced features show installation guidance in the interface.
 
-## 页面流程
+## Typical workflow
 
-1. `/build`：绘制或输入结构，读取确认二维结构、风险诊断、采样环境、计算协议和预估耗时。
-2. `/tasks/<run_id>`：查看单个后台任务的计算阶段、日志摘要、耗时和停止控制；`/tasks` 可查看并删除非运行中的历史任务。
-3. `/results/<run_id>`：任务完成后以三维构象为主进行分析，辅以二维结构确认、性质摘要、能量排序和结果导出。
+1. `/build`: draw or enter a structure, confirm the 2D structure, review diagnostics, choose the sampling environment and computational protocol, and inspect the time estimate.
+2. `/tasks/<run_id>`: inspect the stages, log summary, runtime, and stop controls for one background task. `/tasks` lists and can delete completed or stopped task records.
+3. `/results/<run_id>`: analyze completed conformers in 3D, review 2D confirmation, properties, energy ranking, and exported files.
 
-## 第三方程序安装
+## Install third-party programs
 
-### Ketcher 结构编辑器
+### Ketcher molecular editor
 
-1. 从 [Ketcher Releases](https://github.com/epam/ketcher/releases) 下载 standalone
-   发行包。
-2. 解压后确保 `index.html` 位于下面的目录：
+1. Download a standalone package from [Ketcher Releases](https://github.com/epam/ketcher/releases).
+2. Extract it and make sure `index.html` is located at:
 
    ```text
    Conformer-Q/engines/ketcher-standalone-3.7.0/standalone/index.html
    ```
 
-3. 如果放在其他位置，启动前设置：
+3. If it is installed elsewhere, set the path before starting the app:
 
    ```bash
    export CONFORMER_Q_KETCHER_DIR="/path/to/ketcher/standalone"
    ```
 
-Ketcher 不可用时仍可以在页面中直接输入 Isomeric SMILES。
+Ketcher is optional; users can still enter isomeric SMILES directly in the application.
 
-### CREST 和 xTB 构象搜索
+### CREST and xTB conformer search
 
-可从 [CREST](https://github.com/crest-lab/crest) 和
-[xTB](https://github.com/grimme-lab/xtb) 官方项目获取程序。使用 conda 时，可以
-在已有环境中安装：
+Obtain the programs from the official [CREST](https://github.com/crest-lab/crest) and [xTB](https://github.com/grimme-lab/xtb) projects. With conda, they can be installed into an existing environment with:
 
 ```bash
 conda install -c conda-forge crest xtb
 ```
 
-只要 `crest` 和 `xtb` 在 `PATH` 中，工作台会自动发现它们。否则可显式指定：
+If `crest` and `xtb` are on `PATH`, Conformer-Q discovers them automatically. Otherwise, set explicit paths:
 
 ```bash
 export CONFORMER_Q_CREST_BIN="/path/to/crest"
 export CONFORMER_Q_XTB_BIN="/path/to/xtb"
 ```
 
-工作台使用 CREST 的 `--legacy --gfn2 -xnam <xtb>` 调用方式，并支持气相和
-`ALPB(water)` 隐式水环境。
+Conformer-Q invokes CREST using `--legacy --gfn2 -xnam <xtb>` and supports both gas-phase and `ALPB(water)` implicit-solvent searches.
 
-### ORCA 高级精修
+### ORCA refinement
 
-从 [ORCA 官方渠道](https://www.faccts.de/orca/) 获取与你的使用场景和许可证相符的
-macOS 版本。当前流程按 ORCA `6.0.1` 验证。可以将解压目录放在：
+Obtain an appropriate macOS version from the [official ORCA channel](https://www.faccts.de/orca/) and follow its usage and licensing requirements. The current workflow has been validated with ORCA `6.0.1`. The extracted directory can be placed at:
 
 ```text
 Conformer-Q/engines/orca-6.0.1/orca
 ```
 
-也可以通过环境变量指定：
+You can also specify the installation with environment variables:
 
 ```bash
 export CONFORMER_Q_ORCA_DIR="/path/to/orca_6_0_1"
-# 或直接指定可执行文件
+# Or specify the executable directly:
 export CONFORMER_Q_ORCA_BIN="/path/to/orca_6_0_1/orca"
 ```
 
-ORCA 不随本仓库分发；请自行阅读并遵守 ORCA 的使用许可。缺少 ORCA 时，CREST
-和即时预览仍可独立运行。
+ORCA is not distributed with this repository. Read and follow the ORCA license. Without ORCA, CREST searches and quick previews can still run independently.
 
-### 路径发现优先级
+### Executable discovery order
 
-工作台优先使用 `CONFORMER_Q_*` 环境变量，其次检查项目内的 `engines/` 安装目录，最后
-使用系统 `PATH`。项目内的第三方安装目录已被 `.gitignore` 排除，不会被提交到 Git。
+Conformer-Q checks `CONFORMER_Q_*` environment variables first, then installation directories under `engines/`, and finally the system `PATH`. Local third-party installation directories are excluded by `.gitignore` and are not committed to Git.
 
-## 协议逻辑
+## Protocol logic
 
-页面先进行结构诊断，再执行选择的构象协议：
+The application diagnoses the structure before running the selected conformer protocol:
 
-| 类型 | 推荐策略 |
+| Structure type | Recommended strategy |
 | --- | --- |
-| 柔性链状分子，例如 EBF | `CREST/GFN2-xTB` 主搜索；可追加系统扭转枚举交叉验证 |
-| 较刚性环状分子 | 快速生成初始几何，再以 xTB/ORCA 确认 |
-| 螺环或桥环 | 保持拓扑与立体化学，采用 CREST 搜索与 ORCA 精修 |
-| 宏环 | CREST 多次独立搜索，考虑溶剂模型并进行精修 |
-| 潜在分子内氢键/带电分子 | 按溶剂、pH 和合理微观状态分别研究 |
+| Flexible chain, such as EBF | `CREST/GFN2-xTB` primary search; optionally cross-check with systematic torsion enumeration |
+| Relatively rigid ring system | Generate an initial geometry quickly, then confirm with xTB/ORCA |
+| Spiro or bridged system | Preserve topology and stereochemistry, then use CREST search and ORCA refinement |
+| Macrocycle | Run multiple independent CREST searches, consider solvent models, and refine representative structures |
+| Possible intramolecular hydrogen bonds or charged molecules | Study relevant solvent, pH, and microstate definitions separately |
 
-当前 CREST 任务会向计算程序传递输入结构的形式电荷；对于可能存在多个质子化态或
-互变异构体的化合物，仍应先定义目标微观状态后分别计算。
+CREST receives the formal charge from the submitted structure. For compounds with multiple protonation states or tautomers, define the target microstate first and calculate each relevant state separately.
 
-构象采样环境也是计算协议的一部分：
+The conformer-search environment is part of the computational protocol:
 
-| 环境 | CREST 参数 | 解释范围 |
+| Environment | CREST parameter | Interpretation |
 | --- | --- | --- |
-| 气相 | 默认，不附加溶剂参数 | 孤立分子的低能构象偏好 |
-| 隐式水环境 | `-alpb water` | 连续介质水溶液近似下的低能构象偏好 |
+| Gas phase | No solvent parameter by default | Low-energy conformer preferences for an isolated molecule |
+| Implicit water | `-alpb water` | Low-energy conformer preferences in a continuum-water approximation |
 
-气相与隐式水环境会生成不同任务指纹，结果不会互相复用。隐式水环境不是显式水分子
-模拟，也不等于蛋白结合口袋环境；后续高精度精修应延续同一环境定义。
+Gas-phase and implicit-water searches produce different task fingerprints and are never reused across environments. Implicit water is not an explicit-water simulation and does not represent a protein-binding pocket. Higher-accuracy refinement should use the same environment definition.
 
-## 结果分析逻辑
+## Result analysis
 
-结果页始终保留原始构象集合与能量排序，同时提供用于判读与后续精修选择的家族分析：
+The results page preserves the original conformer ensemble and energy ranking while providing family analysis for interpretation and refinement selection:
 
-| 分析项 | 用途 |
+| Analysis | Purpose |
 | --- | --- |
-| 能量窗口 | 以 `0.5 / 1.0 / 2.0 / 5.0 kcal/mol` 观察低能集合规模 |
-| 重原子 RMSD 聚类 | 通用的整体几何近似分组方式 |
-| TFD 聚类 | 针对扭转自由度主导的柔性分子比较构象家族 |
-| 家族代表 | 每个聚类中相对能量最低的构象，用于三维查看和后续精修挑选 |
+| Energy window | Examine the size of the low-energy ensemble within `0.5 / 1.0 / 2.0 / 5.0 kcal/mol` windows |
+| Heavy-atom RMSD clustering | General grouping by overall geometric similarity |
+| TFD clustering | Compare conformer families for flexible molecules dominated by torsional freedom |
+| Family representative | The lowest-energy conformer in each cluster, available for 3D inspection and refinement selection |
 
-页面默认按结构诊断推荐分析模式：柔性链状分子优先使用 `TFD`；刚性、桥环/螺环和
-宏环当前先使用重原子 `RMSD` 作为初筛。宏环、内氢键或带电体系仍需要专门的特征
-分析和独立搜索验证，当前聚类结果不能代替这些验证。
+The interface recommends an analysis mode from the structure diagnosis: flexible chains default to `TFD`; rigid, bridged, spiro, and macrocyclic systems initially use heavy-atom `RMSD`. Macrocycles, intramolecular hydrogen-bond systems, and charged molecules still require specialized features and independent-search validation; clustering alone is not a substitute for those checks.
 
-结果页现分为两个工作阶段。阶段一显示 CREST 初筛结果并允许勾选低能家族代表；
-阶段二默认预选低能家族中的前 `10` 个代表，也允许用户增删选择，并可提交后台
-`ORCA 6.0.1 r2SCAN-3c Opt + Freq` 任务。气相候选在气相下精修；隐式水相候选
-使用 `CPCM(Water)` 维持水相连续介质定义。用户可设置热力学分析温度，默认
-`298.15 K`。
+Results are organized into two stages. Stage one displays CREST screening results and lets users select low-energy family representatives. Stage two preselects the first `10` representatives from the low-energy families, while allowing the selection to be changed, and can submit an `ORCA 6.0.1 r2SCAN-3c Opt + Freq` task. Gas-phase candidates are refined in the gas phase; implicit-water candidates use `CPCM(Water)` to maintain a continuum-water definition. The thermodynamic analysis temperature is configurable and defaults to `298.15 K`.
 
-进入 ORCA 精修结果后，页面优先显示最终低能构象集合摘要；三维精修视图右侧为
-固定高度、可滚动的 `Delta G` / 玻尔兹曼占比排序列表，可直接切换构象及勾选叠合。
+After ORCA refinement, the page prioritizes the final low-energy conformer summary. The 3D refinement view includes a fixed-height, scrollable ranking of `Delta G` and Boltzmann populations, allowing direct conformer switching and overlay selection.
 
-结果页为当前选中的三维构象提供决策型解释面板，并区分证据层级。面板不再以属性
-清单为主，而是先回答“为什么重要”、“相对主导构象 `#1` 改变在哪里”以及
-“是否建议保留”：
+The selected 3D conformer has a decision-oriented interpretation panel. It distinguishes evidence levels and answers why the conformer matters, how it differs from the dominant conformer `#1`, and whether it should be retained:
 
-| 解释阶段 | 显示内容 | 解释边界 |
+| Stage | Displayed information | Interpretation boundary |
 | --- | --- | --- |
-| CREST/xTB 或快速预览 | 以当前最低能构象为参照，识别显著二面角翻转和折叠变化；结合当前聚类家族提示是否值得送入精修 | 用于筛选和理解候选，不作为最终自由能结论 |
-| ORCA 精修后 | 结合 `ΔG`、指定温度下的玻尔兹曼占比与相对主导构象的独特形状，提示是否保留进入性质分析或 docking 集合 | 仅代表已采样并完成精修的构象集合 |
+| CREST/xTB or quick preview | Significant dihedral flips and folding changes relative to the current lowest-energy conformer, plus family-level guidance on whether refinement is worthwhile | Useful for screening and interpretation, not a final free-energy conclusion |
+| After ORCA refinement | `ΔG`, Boltzmann population at the selected temperature, and distinctive shape relative to the dominant conformer, with a suggestion about retaining it for property analysis or docking | Applies only to the sampled conformers that completed refinement |
 
-显著变化默认报告与 `#1` 相差至少 `30 deg` 的关键二面角。`folded / extended`、
-主轴尺寸和回转半径保留在可展开的测量证据中；分子内氢键仅按距离和角度报告候选。
-当前显示的 `TPSA` 是连接结构的拓扑极性面积，不是单构象三维暴露极性面积。
+By default, significant changes are reported for key dihedrals differing from `#1` by at least `30 deg`. `Folded`/`extended` state, principal-axis dimensions, and radius of gyration remain available as expandable measurement evidence. Intramolecular hydrogen bonds are reported only as distance-and-angle candidates. The displayed `TPSA` is the topological polar surface area of the connected structure, not the exposed 3D polar surface area of one conformer.
 
-精修完成后，页面先排除存在显著虚频（当前阈值 `< -20 cm-1`）的非稳定极小点，
-再按适合该结构的 `TFD` 或重原子 `RMSD` 对优化后结构再次去重，随后按相对吉布斯
-自由能 `ΔG` 排序并计算指定温度下的玻尔兹曼分布。结果表同时展示
-来源 CREST 能量与 ORCA `ΔG`，最终低能构象集合默认定义为累计玻尔兹曼占比达到
-`95%` 所需的独立构象。
+After refinement, the application removes unstable minima with significant imaginary frequencies (current threshold: `< -20 cm-1`), deduplicates optimized structures using structure-appropriate `TFD` or heavy-atom `RMSD`, then ranks them by relative Gibbs free energy `ΔG` and calculates Boltzmann populations at the selected temperature. The final low-energy set is defined by default as the independent conformers needed to reach a cumulative Boltzmann population of `95%`. The results table shows both the originating CREST energy and the ORCA `ΔG`.
 
-若 ORCA 任务在至少一个代表构象完成后被用户停止，任务页可基于已完成的结构打开
-“部分结果”分析。此时显示的 `ΔG` 排序与玻尔兹曼比例仅在已完成子集中有效，明确
-不作为最终低能构象集合结论。
+If an ORCA task is stopped after at least one representative has completed, the task page can open a partial-results analysis. Its `ΔG` ranking and Boltzmann populations apply only within the completed subset and are explicitly not presented as a final low-energy conformer-set conclusion.
 
-ORCA 结果页支持勾选 `2-5` 个独立精修构象进行多色叠合：以最低 `ΔG` 构象为默认
-参考。对于 EBF 这类柔性分子，默认从拓扑中识别由双键或环系定义的局部刚性片段，
-连同直接相邻的重原子作为对齐锚点；用户也可切换为整体重原子叠合或具体片段。
-页面同时报告锚点 `RMSD` 和局部对齐后的全分子 `RMSD`，前者描述共同片段拟合，
-后者显示其余链段的折叠差异。该工具用于解释构象，不替代扭转差异与自由能排序。
+The ORCA results page supports multicolor overlays of `2-5` independent refined conformers, using the lowest-`ΔG` conformer as the default reference. For flexible molecules such as EBF, the application identifies a locally rigid fragment defined by double bonds or rings and includes directly adjacent heavy atoms as alignment anchors. Users can switch to whole-molecule heavy-atom alignment or select a specific fragment. The page reports anchor RMSD and full-molecule RMSD after local alignment: the former describes the common-fragment fit, while the latter shows folding differences in the remaining chain. This tool explains conformational differences; it does not replace torsional analysis or free-energy ranking.
 
-ORCA 结果页还提供三维性质作图模块。用户选择当前精修构象后，可生成：
+## 3D property maps
 
-| 图层 | 数据来源 | 解释边界 |
+The ORCA results page provides a 3D property-mapping module for the selected refined conformer:
+
+| Map | Data source | Interpretation boundary |
 | --- | --- | --- |
-| ESP | `orca_vpot` 基于该构象 `r2SCAN-3c` 波函数计算，映射到 VDW 可视化表面 | 蓝色为负电势、红色为正电势；默认对称色标为 `+/- 0.05 a.u.` |
-| HOMO / LUMO | `orca_plot` 从该构象 `.gbw` 波函数导出轨道 cube | 橙/蓝表示轨道相位，不表示静电荷；比较图片应保持相同等值面 |
-| 经验疏水势 | RDKit Wildman-Crippen 原子 cLogP 贡献的三维高斯投影 | 蓝色至棕色显示相对分布，棕色表示疏水；不是 ORCA 量子化学可观测量 |
+| ESP | `orca_vpot` evaluates the electrostatic potential from the `r2SCAN-3c` wavefunction and maps it onto a VDW visualization surface | Blue indicates negative potential and red indicates positive potential; the default symmetric scale is `+/- 0.05 a.u.` |
+| HOMO / LUMO | `orca_plot` exports orbital cube files from the conformer's `.gbw` wavefunction | Orange/blue show orbital phase, not electrostatic charge; keep the same isovalue when comparing images |
+| Empirical hydrophobic potential | A 3D Gaussian projection of RDKit Wildman-Crippen atomic cLogP contributions | The blue-to-brown scale shows relative distribution; brown indicates hydrophobic character. This is not an ORCA quantum-chemical observable |
 
-性质图首次生成会执行 ORCA 后处理并缓存 cube 数据，其中 ESP 需要额外计算网格电势；
-再次打开相同构象和图层会复用缓存。导出时视图会临时按高分辨率重绘；PNG 包含
-图层、构象编号和当前色标或等值面文字，用于保留作图条件。
+The first map generation runs ORCA post-processing and caches cube data. ESP requires an additional calculation of the grid potential. Reopening the same conformer and map reuses the cache. During export, the view is temporarily redrawn at high resolution; PNG files include the map type, conformer number, and current scale or isovalue so the plotting conditions are preserved.
 
-对于 EBF 等柔性分子，低频振动对熵和构象自由能排序可能较敏感；当前 `Opt + Freq`
-流程提供可执行的首版热力学筛选，后续验证仍应评估低频处理方案与更高层级单点能
-校正对最终排序的影响。
+For flexible molecules such as EBF, low-frequency vibrations can strongly affect entropy and conformer free-energy ranking. The current `Opt + Freq` workflow provides an executable first-pass thermodynamic screen; further validation should evaluate low-frequency treatment and higher-level single-point corrections.
 
-CREST 坐标解析会保留任务提交时的原子顺序模板；规范化 SMILES 仅用于结构标识和
-任务去重，避免规范化原子重排导致三维坐标与键连接错配。
+CREST coordinate parsing preserves the atom-order template used when the task was submitted. Canonical SMILES is used only for structure identification and task deduplication, preventing atom reordering during canonicalization from mismatching 3D coordinates and bond connectivity.
 
-## 任务管理逻辑
+## Task management
 
-长计算任务在各自输出目录内写入 `task.json`，记录结构指纹、协议、状态、启动时间、
-预计耗时和进程标识。页面刷新或重新打开后可继续跟踪任务；完成结果可由任务页面
-重新载入三维构象查看器。当前时间预测是运行调度提示，不是化学计算完成时间保证：
-新的结构类别没有历史样本时，偏差可能较大。
+Long-running tasks write `task.json` files in their output directories containing the structure fingerprint, protocol, status, start time, estimated duration, and process identifier. Tasks can be followed after a page refresh or reopening the application, and completed results can be reloaded from the task page. Time estimates are scheduling guidance, not guarantees of computational completion time; unfamiliar structure classes may have larger errors before historical samples are available.
 
-## EBF 数据来源
+## EBF data source
 
 - PubChem CID 5281517: <https://pubchem.ncbi.nlm.nih.gov/compound/5281517>
-- 结构输入：`CC(=CCC/C(=C/CCC(=C)C=C)/C)C`
-- 分子式：`C15H24`
+- Structure input: `CC(=CCC/C(=C/CCC(=C)C=C)/C)C`
+- Molecular formula: `C15H24`
 
-## 可选集成
+## Optional integration
 
-结果页的衍生设计入口会访问本机 `http://127.0.0.1:5063/` 的
-`Molecular_Derivative_Designer`。这是可选集成；只使用本工作台时可以忽略该入口。
+The derivative-design entry point on the results page connects to `Molecular_Derivative_Designer` at `http://127.0.0.1:5063/`. This integration is optional and can be ignored when using Conformer-Q by itself.
 
-## 下一步
+## Roadmap
 
-1. 增加 CREST 搜索日志查看页和多次独立搜索收敛报告，进一步改进时间预测。
-2. 增加合理质子化态与互变异构体枚举。
-3. 增加多次独立搜索收敛报告和更高层级单点能校正方案。
-4. 增加受控类似物设计、项目保存和性质比较表。
+1. Add a CREST search-log viewer and convergence reports for multiple independent searches to improve runtime estimates.
+2. Add enumeration of reasonable protonation states and tautomers.
+3. Add convergence reports for repeated independent searches and higher-level single-point corrections.
+4. Add controlled analog design, project saving, and property-comparison tables.
 
-## 第三方前端组件
+## Third-party frontend components
 
-- `web/vendor/3Dmol-min.js`：`3Dmol.js 2.4.2`，用于在浏览器中离线显示三维构象。
-- 许可证文本保存在 `web/vendor/3Dmol-LICENSE.txt`。
+- `web/vendor/3Dmol-min.js`: `3Dmol.js 2.4.2`, used for offline browser-based visualization of 3D conformers.
+- The license text is stored in `web/vendor/3Dmol-LICENSE.txt`.
