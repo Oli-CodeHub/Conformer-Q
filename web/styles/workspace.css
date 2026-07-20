@@ -1,0 +1,313 @@
+:root {
+  --bg: #ffffff;
+  --paper: #ffffff;
+  --panel: #ffffff;
+  --ink: #1d1d1f;
+  --muted: #6e6e73;
+  --line: rgba(60, 60, 67, 0.12);
+  --soft-line: rgba(60, 60, 67, 0.08);
+  --accent: #007aff;
+  --accent-deep: #006ee6;
+  --accent-soft: rgba(0, 122, 255, 0.10);
+  --soft: rgba(0, 122, 255, 0.10);
+  --warm: #f7f7f8;
+  --success: #248a3d;
+  --success-soft: rgba(52, 199, 89, 0.09);
+  --warning: #8a5100;
+  --warning-soft: rgba(255, 149, 0, 0.09);
+  --danger: #d70015;
+  --danger-soft: rgba(255, 59, 48, 0.07);
+  --shadow: 0 10px 28px rgba(0, 0, 0, 0.045);
+}
+
+html, body {
+  min-height: 100%;
+}
+
+body {
+  background: radial-gradient(circle at 5% 15%, rgba(0, 122, 255, 0.045), transparent 23%), #fff !important;
+  color: var(--ink) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Hiragino Sans GB", Arial, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+header {
+  height: 84px !important;
+  padding: 0 30px !important;
+  border-bottom: 1px solid var(--line) !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  backdrop-filter: blur(24px) saturate(1.12);
+  -webkit-backdrop-filter: blur(24px) saturate(1.12);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.mark {
+  width: 48px !important;
+  height: 48px !important;
+  border: 1px solid rgba(0, 122, 255, 0.14);
+  border-radius: 14px !important;
+  background: rgba(0, 122, 255, 0.07) !important;
+  color: var(--accent) !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.02em;
+}
+
+.head::before, .title::before, header > div:nth-child(2)::before {
+  content: "CONFORMER-Q";
+  display: block;
+  margin-bottom: 5px;
+  color: var(--accent);
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.title h1, .head h1, header h1 {
+  font-size: 25px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+
+header p {
+  color: var(--muted) !important;
+  font-size: 12px !important;
+}
+
+.nav a, a.nav {
+  border: 1px solid var(--line) !important;
+  border-radius: 11px !important;
+  padding: 10px 14px !important;
+  background: #fff;
+  color: var(--ink) !important;
+  font-weight: 500;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.nav a:hover, a.nav:hover {
+  background: #f7f7f8;
+  color: var(--accent) !important;
+}
+
+main {
+  color: var(--ink);
+  max-width: 1360px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.steps {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px !important;
+  width: 296px;
+  margin-bottom: 18px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: #f7f7f8;
+}
+
+.step {
+  display: block;
+  border: 0 !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  padding: 8px 15px !important;
+  font-size: 12px !important;
+  line-height: 18px;
+  font-weight: 400;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.step.active {
+  background: #fff !important;
+  color: var(--accent) !important;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+}
+
+.card, .panel, .side-card, .task {
+  background: #fff !important;
+  border-color: var(--line) !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+}
+
+h2, h3 {
+  color: var(--ink);
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+.desc, .note, .mono, .meta, .headline p {
+  color: var(--muted) !important;
+}
+
+label {
+  color: var(--muted) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+input, textarea, select {
+  border-color: var(--line) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  color: var(--ink) !important;
+  box-shadow: none;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: rgba(0, 122, 255, 0.5) !important;
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
+}
+
+button, .button {
+  min-height: 39px;
+  border: 1px solid var(--accent) !important;
+  border-radius: 10px !important;
+  background: var(--accent) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  font-weight: 500 !important;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+button:hover, .button:hover {
+  background: var(--accent-deep) !important;
+}
+
+button.secondary, .button.secondary, .refresh, .button:not(.danger)[href*="download"] {
+  border-color: var(--line) !important;
+  background: #fff !important;
+  color: var(--ink) !important;
+}
+
+button.secondary:hover, .button.secondary:hover, .refresh:hover {
+  background: #f5f5f7 !important;
+}
+
+button.danger, .button.danger {
+  border-color: rgba(255, 59, 48, 0.20) !important;
+  background: var(--danger-soft) !important;
+  color: var(--danger) !important;
+}
+
+button.danger:hover, .button.danger:hover {
+  background: rgba(255, 59, 48, 0.12) !important;
+}
+
+.metric, .stat, .cell, .controls {
+  border: 1px solid var(--soft-line);
+  border-radius: 12px !important;
+  background: #f7f7f8 !important;
+}
+
+.metric strong, .stat strong, .metric .number {
+  color: var(--ink);
+  font-weight: 600 !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.metric span, .stat span, .cell span {
+  color: var(--muted) !important;
+}
+
+.protocol, .scope, .notice {
+  border-color: rgba(0, 122, 255, 0.14) !important;
+  background: rgba(0, 122, 255, 0.065) !important;
+  color: #354969 !important;
+}
+
+.warn {
+  background: var(--warning-soft) !important;
+  color: var(--warning) !important;
+}
+
+.error {
+  background: var(--danger-soft) !important;
+  color: var(--danger) !important;
+}
+
+.badge, .tag {
+  border: 1px solid rgba(0, 122, 255, 0.13);
+  background: rgba(0, 122, 255, 0.07) !important;
+  color: var(--accent) !important;
+}
+
+.badge::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  vertical-align: middle;
+}
+
+.badge.completed {
+  border-color: rgba(52, 199, 89, 0.18);
+  background: var(--success-soft) !important;
+  color: var(--success) !important;
+}
+
+.badge.completed::before {
+  background: var(--success);
+}
+
+.badge.failed, .badge.stopped {
+  border-color: rgba(255, 59, 48, 0.18);
+  background: var(--danger-soft) !important;
+  color: var(--danger) !important;
+}
+
+.badge.failed::before, .badge.stopped::before {
+  background: var(--danger);
+}
+
+.bar {
+  background: #edf0f2 !important;
+}
+
+.bar i {
+  background: var(--accent) !important;
+}
+
+table th {
+  background: #f7f7f8;
+  color: var(--muted) !important;
+}
+
+table td, table th {
+  border-bottom-color: var(--soft-line) !important;
+}
+
+tbody tr.selected {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+}
+
+@media (max-width: 700px) {
+  header {
+    height: auto !important;
+    min-height: 76px;
+    padding: 14px 18px !important;
+  }
+  .head::before, .title::before, header > div:nth-child(2)::before {
+    display: none;
+  }
+  .steps {
+    width: 100%;
+  }
+}

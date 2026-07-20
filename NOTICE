@@ -1,0 +1,19 @@
+# Third-party notices
+
+Conformer-Q uses or integrates with the following third-party
+components. Their source code, binaries, and licenses are not relicensed by the
+MIT license in this repository.
+
+- RDKit: https://www.rdkit.org/docs/license.html
+- Flask: https://flask.palletsprojects.com/en/stable/license/
+- NumPy: https://numpy.org/doc/stable/license.html
+- 3Dmol.js 2.4.2: see `web/vendor/3Dmol-LICENSE.txt`
+- Ketcher standalone: downloaded separately by the user; see the Ketcher
+  distribution and https://github.com/epam/ketcher
+- CREST and xTB: downloaded separately by the user; see their distributions and
+  the license files supplied by the respective projects
+- ORCA: downloaded separately by the user from its official distribution
+  channel; it is not included in this repository
+
+The EBF example references PubChem CID 5281517. See the source link in
+`README.md` for the structure provenance.

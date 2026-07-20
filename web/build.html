@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>新建计算 | Conformer-Q</title>
+<style>
+:root{--ink:#182524;--muted:#61706c;--line:#dbe2de;--accent:#086b62;--soft:#e7f2ef;--warm:#fbfaf7;--danger:#9c372e;--card:#fff}
+*{box-sizing:border-box}body{margin:0;background:#f6f8f6;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",Arial,sans-serif}header{height:76px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:15px;padding:0 30px}.mark{height:42px;width:42px;background:var(--accent);border-radius:13px;color:#fff;display:grid;place-items:center;font-weight:650}.title h1{font-size:20px;margin:0}.title p{font-size:12px;color:var(--muted);margin:4px 0 0}.nav{margin-left:auto;display:flex;gap:9px}.nav a{padding:9px 13px;border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--accent);font-size:13px}
+main{max-width:1360px;margin:0 auto;padding:22px}.steps{display:flex;gap:7px;margin-bottom:18px}.step{padding:8px 13px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:12px;color:var(--muted)}.step.active{background:var(--soft);border-color:#bcd9d3;color:var(--accent);font-weight:600}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:17px}.card h2{font-size:18px;margin:0 0 5px}.desc{margin:0 0 15px;color:var(--muted);line-height:1.55;font-size:13px}.draw-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}.input-strip{display:grid;grid-template-columns:290px 1fr auto;gap:10px;align-items:start;margin:12px 0 15px}.input-strip label{margin-top:0}.input-strip input,.input-strip textarea,.input-action button{height:40px}.input-strip textarea{min-height:40px}.field-spacer{visibility:hidden;white-space:nowrap}.input-action button{width:100%}.editor{height:475px;border:1px solid var(--line);border-radius:13px;overflow:hidden;background:#fff}.editor iframe{width:100%;height:100%;border:0}.review{display:grid;grid-template-columns:335px minmax(300px,1fr) 390px;gap:15px}.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}.panel h2{font-size:16px;margin:0 0 11px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{display:block;font-size:12px;color:var(--muted);font-weight:560;margin:14px 0 7px}input,textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 11px;font:inherit;color:var(--ink);background:#fff}textarea{height:68px;resize:vertical;font:12px "SFMono-Regular",Menlo,monospace}button{border:1px solid var(--accent);border-radius:10px;background:var(--accent);padding:10px 14px;color:#fff;font:inherit;font-size:13px;font-weight:570;cursor:pointer}button.secondary{background:#fff;color:var(--accent)}button:disabled{opacity:.48;cursor:not-allowed}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.preview{background:var(--warm);height:205px;border:1px dashed var(--line);border-radius:12px;display:grid;place-items:center;padding:8px}.preview svg{max-height:195px;max-width:100%}.confirm{display:none}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{background:#f6f9f7;border-radius:10px;padding:9px;min-height:60px}.metric strong{font-size:16px;display:block}.metric strong sub{font-size:.68em;line-height:0;vertical-align:sub}.metric span{font-size:11px;color:var(--muted)}.protocol{margin-top:13px;padding:12px;background:var(--soft);border-radius:11px;color:#315954;font-size:12px;line-height:1.6}.condition{margin-top:9px;padding:10px 11px;background:#f6f9f7;border-radius:10px;color:#425f5a;font-size:12px;line-height:1.55}.warn{margin-top:12px;padding:11px;background:#fff5ee;color:#79522b;border-radius:10px;font-size:12px;line-height:1.55}.error{display:none;color:var(--danger);background:#fff1ef;padding:11px;border-radius:10px;margin-top:12px;font-size:13px}@media(max-width:1080px){.review,.input-strip{display:block}.panel{margin-bottom:13px}.editor{height:430px}.input-action{margin-top:12px}.input-action .field-spacer{display:none}}
+</style>
+<link rel="stylesheet" href="/styles/workspace.css?v=20260526-2" />
+</head>
+<body>
+<header><div class="mark">MD</div><div class="title"><h1>新建计算</h1><p>Structure definition and protocol confirmation</p></div><nav class="nav"><a href="/tasks">计算任务</a></nav></header>
+<main>
+  <div class="steps"><span class="step active">1 结构与方法</span><span class="step">2 计算任务</span><span class="step">3 结果分析</span></div>
+    <section class="card">
+      <div class="draw-head">
+        <div>
+      <h2>绘制分子结构</h2>
+      <p class="desc">在本地 Ketcher 中绘制结构，读取后由 RDKit 标准化并检查电荷、拓扑与构象风险。</p>
+        </div>
+        <div class="actions"><button onclick="readKetcher()">读取绘制结构</button><button class="secondary" onclick="loadEBF()">载入 EBF 案例</button></div>
+      </div>
+      <div class="input-strip">
+        <div><label for="name">分子名称</label><input id="name" value="(E)-beta-farnesene (EBF)" /></div>
+        <div><label for="smiles">也可以直接输入 Isomeric SMILES</label><textarea id="smiles">CC(=CCC/C(=C/CCC(=C)C=C)/C)C</textarea></div>
+        <div class="input-action"><label class="field-spacer" aria-hidden="true">操作</label><button class="secondary" onclick="confirmStructure()">确认输入结构</button></div>
+      </div>
+      <div class="editor"><iframe id="ketcherFrame" src="/ketcher/index.html" title="Ketcher structure editor"></iframe></div>
+      <div id="ketcherWarning" class="warn" hidden>
+        未检测到 Ketcher standalone。你仍可直接输入 Isomeric SMILES；如需绘图，请按 README 下载并设置
+        <code>CONFORMER_Q_KETCHER_DIR</code>，或将文件放入 <code>engines/ketcher-standalone-3.7.0/standalone/</code>。
+      </div>
+    </section>
+    <div class="review">
+      <section class="panel">
+        <h2>1. 标准化结构确认</h2>
+      <div class="preview" id="preview"><span class="desc">读取或确认结构后显示二维结构</span></div>
+      </section>
+      <section class="panel">
+        <h2>2. 结构诊断</h2>
+      <div id="confirmed" class="confirm">
+        <div class="metrics" id="metrics"></div>
+        <div class="protocol" id="profile"></div>
+      </div>
+      <div id="error" class="error"></div>
+      </section>
+      <section class="panel">
+        <h2>3. 方法确认与提交</h2>
+        <p class="desc">确认立体化学与形式电荷之后，再将结构交给构象搜索。</p>
+      <div id="methodControls" class="confirm">
+        <label for="mode">构象计算协议</label>
+        <select id="mode" onchange="refreshPlan()">
+          <option value="crest_quick">快速研究搜索 · CREST reduced / GFN2-xTB</option>
+          <option value="crest">完整研究搜索 · CREST iMTD-GC / GFN2-xTB</option>
+          <option value="quick">即时预览 · ETKDGv3 / MMFF94</option>
+        </select>
+        <div id="environmentControls">
+          <label for="environment">低能构象采样环境</label>
+          <select id="environment" onchange="refreshPlan()">
+            <option value="gas">气相 · 孤立分子</option>
+            <option value="water">隐式水环境 · ALPB(water)</option>
+          </select>
+          <div class="condition" id="environmentNote">气相搜索描述孤立分子的低能构象偏好，不代表水溶液或蛋白结合环境。</div>
+        </div>
+        <div class="warn" id="plan"></div>
+        <details id="previewAdvanced" hidden>
+          <summary style="font-size:12px;color:var(--muted);margin-top:13px;cursor:pointer">即时预览高级参数</summary>
+          <div class="row"><div><label>初始构象数</label><input id="num" type="number" value="30" min="1" max="200"></div><div><label>复现种子</label><input id="seed" type="number" value="20260525"></div></div>
+        </details>
+        <div class="actions"><button id="submit" onclick="submitCalculation()">确认并提交计算</button></div>
+      </div>
+      </section>
+    </div>
+</main>
+<script>
+let structureConfirmed = false;
+function esc(value){return String(value).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
+function formulaMarkup(value){return esc(value).replace(/(\d+)/g,"<sub>$1</sub>")}
+function humanTime(seconds){const min=Math.ceil(seconds/60);return min < 60 ? `约 ${min} 分钟` : `约 ${Math.floor(min/60)} 小时 ${min%60} 分钟`}
+async function ketcherInstance(){
+  const frame = document.getElementById("ketcherFrame");
+  for(let i=0;i<30;i++){try{if(frame.contentWindow.ketcher)return frame.contentWindow.ketcher}catch(e){}await new Promise(r=>setTimeout(r,250))}
+  throw new Error("结构编辑器尚未准备完成，请稍后重试。");
+}
+async function loadEBF(){
+  const example = await fetch("/api/example").then(r=>r.json());
+  document.getElementById("name").value = example.name;
+  document.getElementById("smiles").value = example.smiles;
+  try {const editor=await ketcherInstance(); await editor.setMolecule(example.smiles);} catch(e) {}
+  await confirmStructure();
+}
+async function readKetcher(){
+  try {
+    const editor = await ketcherInstance();
+    const smiles = await editor.getSmiles();
+    if(!smiles) throw new Error("编辑器中没有可读取的结构。");
+    document.getElementById("smiles").value = smiles;
+    await confirmStructure();
+  } catch(err) {showError(err.message)}
+}
+function showError(text){const box=document.getElementById("error");box.textContent=text;box.style.display="block"}
+async function checkOptionalTools(){
+  try {
+    const data=await fetch("/api/tools").then(r=>r.json());
+    document.getElementById("ketcherWarning").hidden=Boolean(data.ketcher && data.ketcher.available);
+  } catch(e) {}
+}
+async function confirmStructure(){
+  document.getElementById("error").style.display="none";
+  const smiles=document.getElementById("smiles").value.trim();
+  const response=await fetch("/api/profile",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({smiles})});
+  const data=await response.json();
+  if(!response.ok){showError(data.error);structureConfirmed=false;return}
+  structureConfirmed=true;
+  document.getElementById("preview").innerHTML=data.svg;
+  const p=data.properties, q=data.profile;
+  document.getElementById("metrics").innerHTML=[[p.formula,"分子式"],[p.molecular_weight,"分子量"],[q.formal_charge,"形式电荷"],[p.rotatable_bonds,"可旋转键"],[q.ring_count,"环系"],[q.topology,"类型"]].map(x=>`<div class="metric"><strong>${x[1]==="分子式"?formulaMarkup(x[0]):esc(x[0])}</strong><span>${x[1]}</span></div>`).join("");
+  document.getElementById("profile").innerHTML=`<strong>${esc(q.topology)}</strong><br>${esc(q.recommended_protocol)}<br><small>${esc(q.scientific_scope)}</small>`;
+  document.getElementById("confirmed").style.display="block";
+  document.getElementById("methodControls").style.display="block";
+  await refreshPlan();
+}
+async function refreshPlan(){
+  if(!structureConfirmed)return;
+  const mode=document.getElementById("mode").value, plan=document.getElementById("plan");
+  const advanced=document.getElementById("previewAdvanced"), isPreview=mode==="quick";
+  const environmentControls=document.getElementById("environmentControls"), environment=document.getElementById("environment").value;
+  advanced.hidden=!isPreview;
+  if(!isPreview)advanced.open=false;
+  environmentControls.hidden=isPreview;
+  document.getElementById("environmentNote").textContent=environment==="water"
+    ? "以 ALPB 连续介质水模型参与 CREST 搜索；这是水溶液近似，不等同于显式水或蛋白口袋环境。"
+    : "气相搜索描述孤立分子的低能构象偏好，不代表水溶液或蛋白结合环境。";
+  if(isPreview){plan.innerHTML="即时生成三维预览；属于力场局部优化，不用于宣称系统低能构象搜索。";return}
+  const quality=mode==="crest_quick"?"quick":"full";
+  const response=await fetch("/api/crest/plan",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({smiles:document.getElementById("smiles").value,search_quality:quality,sampling_environment:environment})});
+  const data=await response.json();
+  if(!response.ok){showError(data.error);return}
+  const duplicate=data.duplicate_task ? `<br><strong>发现可复用任务：</strong>${esc(data.duplicate_task.run_id)}（${data.duplicate_task.status==="running"?"运行中":"已完成"}），提交时不会重复计算。` : "";
+  plan.innerHTML=`方法：${esc(data.method)}<br>初始预计耗时：${humanTime(data.estimated_seconds)}；${esc(data.estimate_basis)}。${duplicate}`;
+}
+async function submitCalculation(){
+  if(!structureConfirmed){showError("请先读取并确认结构。");return}
+  const mode=document.getElementById("mode").value;
+  const payload={name:document.getElementById("name").value,smiles:document.getElementById("smiles").value,num_conformers:Number(document.getElementById("num").value),seed:Number(document.getElementById("seed").value)};
+  const target=mode==="quick"?"/api/analyze":"/api/crest/start";
+  if(mode!=="quick"){payload.search_quality=mode==="crest_quick"?"quick":"full";payload.sampling_environment=document.getElementById("environment").value}
+  const response=await fetch(target,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+  const data=await response.json();
+  if(!response.ok){showError(data.error||"提交失败");return}
+  if(mode==="quick"){window.location.href=`/results/${encodeURIComponent(data.run_id)}`;return}
+  window.location.href=`/tasks/${encodeURIComponent(data.run_id)}${data.duplicate?"?duplicate=1":""}`;
+}
+loadEBF();
+checkOptionalTools();
+</script>
+</body>
+</html>

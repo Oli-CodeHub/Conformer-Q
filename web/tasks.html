@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>计算任务 | Conformer-Q</title>
+<style>
+:root{--ink:#182524;--muted:#61706c;--line:#dbe2de;--accent:#086b62;--accent-soft:#e7f2ef;--warning:#9b6518;--warning-soft:#fff4e3;--danger:#9c372e;--card:#fff}
+*{box-sizing:border-box}body{margin:0;background:#f6f8f6;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",Arial,sans-serif}
+header{height:78px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 32px;gap:15px}.mark{width:42px;height:42px;border-radius:13px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:650;font-size:15px}h1{font-size:21px;margin:0;font-weight:620}header p{margin:4px 0 0;color:var(--muted);font-size:12px}
+.nav{margin-left:auto;display:flex;gap:9px}.nav a{color:var(--accent);text-decoration:none;font-size:13px}
+main{max-width:1360px;margin:0 auto;padding:22px}.headline{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px}.overview{border:1px solid var(--line);padding:19px 20px;margin-bottom:16px}.headline h2{font-size:27px;letter-spacing:0;margin:0 0 7px}.headline p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}.refresh{border:1px solid var(--line);border-radius:10px;padding:9px 13px;background:#fff;color:var(--ink);cursor:pointer}
+.notice{display:none;border:1px solid #c9e2dc;background:var(--accent-soft);color:#315954;border-radius:13px;padding:13px 15px;margin-bottom:18px;font-size:13px;line-height:1.55}
+.task{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:18px 20px;margin-bottom:13px}.task.focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(8,107,98,.08)}.task-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.task h3{font-size:17px;margin:0 0 6px;font-weight:610}.task h3 a{color:var(--ink);text-decoration:none}.task h3 a:hover{color:var(--accent)}.mono{font:12px "SFMono-Regular",Menlo,monospace;color:var(--muted)}.badge{padding:6px 11px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:600;white-space:nowrap}.badge.completed{background:#ecf5e8;color:#47713b}.badge.stopped,.badge.failed{background:#fff1ef;color:var(--danger)}
+.details{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:12px;margin-top:17px}.cell{border:1px solid #edf1ee;border-radius:12px;background:#f8faf8;padding:12px;font-size:13px}.cell span{display:block;font-size:11px;color:var(--muted);margin-bottom:7px}.cell strong{font-size:14px;font-weight:580}.stage{color:var(--accent)}.over{color:var(--warning)}
+.bar{height:7px;background:#edf2ef;border-radius:99px;overflow:hidden;margin-top:16px}.bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}.meta{font-size:12px;color:var(--muted);margin:11px 0 0;line-height:1.55}.actions{display:flex;gap:9px;margin-top:15px}.button{border:1px solid var(--accent);border-radius:10px;padding:9px 13px;background:var(--accent);color:#fff;text-decoration:none;font-size:13px;font-weight:570;cursor:pointer}.button.secondary{background:#fff;color:var(--accent)}.button.danger{border-color:#edc9c5;color:var(--danger)}.empty{background:#fff;border:1px dashed var(--line);border-radius:17px;padding:60px;text-align:center;color:var(--muted)}
+@media(max-width:760px){header{padding:0 18px}.details{display:block}.cell{margin-top:10px}.headline{display:block}.refresh{margin-top:13px}}
+</style>
+<link rel="stylesheet" href="/styles/workspace.css?v=20260526-2" />
+</head>
+<body>
+<header><div class="mark">MD</div><div class="head"><h1>计算任务</h1><p>Long-running conformer searches and refinement jobs</p></div><nav class="nav"><a href="/build">新建计算</a></nav></header>
+<main>
+  <div class="steps"><span class="step">1 结构与方法</span><span class="step active">2 计算任务</span><span class="step">3 结果分析</span></div>
+  <section class="card headline overview">
+    <div><h2>任务中心</h2><p>CREST 搜索与 ORCA 精修均在后台运行。预估时间是调度参考，将随同类任务的完成历史逐步校准。</p></div>
+    <button class="refresh" onclick="loadTasks()">刷新</button>
+  </section>
+  <div id="notice" class="notice"></div>
+  <div id="tasks"><div class="empty">正在读取任务...</div></div>
+</main>
+<script>
+const query = new URLSearchParams(window.location.search);
+const focus = query.get("focus");
+function esc(value){return String(value).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
+function duration(seconds){
+  if(seconds < 60) return "不足 1 分钟";
+  const minutes = Math.ceil(seconds / 60);
+  if(minutes < 60) return `${minutes} 分钟`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest ? `${hours} 小时 ${rest} 分钟` : `${hours} 小时`;
+}
+function timestamp(seconds){return new Date(seconds * 1000).toLocaleString("zh-CN", {hour12:false})}
+function statusLabel(status){return ({running:"运行中",completed:"已完成",failed:"失败",stopped:"已停止"})[status] || status}
+function projection(task){
+  if(task.task_type !== "orca" || task.status !== "running" || !task.completed_count) return {dynamic:false, remaining:task.remaining_seconds};
+  const unfinished = Math.max(0, task.selection_count - task.completed_count);
+  const observed = task.observed_seconds_per_conformer || Math.ceil(task.elapsed_seconds / task.completed_count);
+  return {
+    dynamic:true,
+    remaining:task.dynamic_remaining_seconds ?? Math.ceil(observed * unfinished),
+    observed,
+    rough:task.dynamic_eta_confidence === "legacy_rough" || !task.dynamic_eta_available
+  };
+}
+function renderTask(task){
+  const isRunning = task.status === "running";
+  const eta = projection(task);
+  const projectedTotal = eta.dynamic ? task.elapsed_seconds + eta.remaining : task.estimated_seconds;
+  const progressPercent = isRunning ? Math.min(96, Math.max(5, Math.round(task.elapsed_seconds / projectedTotal * 100))) : task.status === "completed" ? 100 : 0;
+  const remaining = eta.dynamic
+    ? `<strong>${duration(eta.remaining)}</strong>`
+    : task.estimate_exceeded ? `<strong class="over">已超过初始估算，继续计算中</strong>` : `<strong>${isRunning ? duration(task.remaining_seconds) : "-"}</strong>`;
+  const remainingTitle = eta.dynamic ? `动态预计剩余${eta.rough?"（粗估）":""}` : "预计剩余时间";
+  const etaNote = eta.dynamic ? `<br>动态 ETA：按已完成构象观测耗时估算，每个约 ${duration(eta.observed)}${eta.rough?"；当前任务未记录逐构象时间，估算偏保守。":""}` : "";
+  const hasPartialResult = task.task_type === "orca" && task.status === "stopped" && task.completed_count > 0;
+  const action = task.status === "completed"
+    ? `<a class="button" href="/results/${encodeURIComponent(task.run_id)}">进入结果分析</a><a class="button secondary" href="/tasks/${encodeURIComponent(task.run_id)}">任务详情</a><button class="button secondary danger" onclick="deleteTask('${task.run_id}')">删除</button>`
+    : `<a class="button secondary" href="/tasks/${encodeURIComponent(task.run_id)}">查看详情</a>${hasPartialResult?`<a class="button" href="/results/${encodeURIComponent(task.run_id)}">查看部分结果</a>`:""}${isRunning ? ` <button class="button secondary" onclick="stopTask('${task.run_id}')">停止任务</button><button class="button secondary danger" onclick="terminateAndDeleteTask('${task.run_id}')">终止并删除</button>` : `<button class="button secondary danger" onclick="deleteTask('${task.run_id}')">删除</button>`}`;
+  return `<article class="task ${task.run_id === focus ? "focus" : ""}">
+    <div class="task-head"><div><h3><a href="/tasks/${encodeURIComponent(task.run_id)}">${esc(task.name)}</a></h3><div class="mono">${esc(task.run_id)} · ${esc(task.task_type==="orca" ? "ORCA r2SCAN-3c Opt + Freq" : task.search_quality === "quick" ? "CREST reduced" : "CREST full")} · ${esc(task.sampling_environment_label)}</div></div><span class="badge ${task.status}">${statusLabel(task.status)}</span></div>
+    <div class="details">
+      <div class="cell"><span>当前阶段</span><strong class="stage">${esc(task.progress || statusLabel(task.status))}</strong></div>
+      <div class="cell"><span>已运行 / 初始预估</span><strong>${duration(task.elapsed_seconds)} / ${duration(task.estimated_seconds)}</strong></div>
+      <div class="cell"><span>${remainingTitle}</span>${remaining}</div>
+    </div>
+    ${isRunning || task.status === "completed" ? `<div class="bar"><i style="width:${progressPercent}%"></i></div>` : ""}
+    <p class="meta">提交时间：${timestamp(task.created_at)} · 初始估算依据：${esc(task.estimate_basis)}${etaNote}<br>${esc(task.canonical_smiles)}</p>
+    <div class="actions">${action}</div>
+  </article>`;
+}
+async function loadTasks(){
+  const response = await fetch("/api/tasks");
+  const data = await response.json();
+  document.getElementById("tasks").innerHTML = data.tasks.length ? data.tasks.map(renderTask).join("") : `<div class="empty">还没有后台计算任务。请从分子工作台提交结构搜索或高级精修。</div>`;
+}
+async function stopTask(runId){
+  const response = await fetch(`/api/tasks/${encodeURIComponent(runId)}/stop`, {method:"POST"});
+  const data = await response.json();
+  if(!response.ok){window.alert(data.error || "停止任务失败");return}
+  await loadTasks();
+}
+async function terminateAndDeleteTask(runId){
+  if(!window.confirm("确定终止并删除该任务及其已经产生的结果和日志吗？此操作不可恢复。")) return;
+  let response = await fetch(`/api/tasks/${encodeURIComponent(runId)}/stop`, {method:"POST"});
+  let data = await response.json();
+  if(!response.ok){window.alert(data.error || "终止任务失败");return}
+  response = await fetch(`/api/tasks/${encodeURIComponent(runId)}`, {method:"DELETE"});
+  data = await response.json();
+  if(!response.ok){window.alert(data.error || "任务已终止，但删除失败");await loadTasks();return}
+  await loadTasks();
+}
+async function deleteTask(runId){
+  if(!window.confirm("确定删除这个历史任务及其构象结果和日志吗？此操作不可恢复。")) return;
+  const response = await fetch(`/api/tasks/${encodeURIComponent(runId)}`, {method:"DELETE"});
+  const data = await response.json();
+  if(!response.ok){window.alert(data.error || "删除失败");return}
+  await loadTasks();
+}
+if(query.get("duplicate")){
+  const notice = document.getElementById("notice");
+  notice.style.display = "block";
+  notice.textContent = "检测到相同分子结构和相同计算协议的已有任务，没有重复启动计算。已为你定位到可复用的任务。";
+}
+loadTasks();
+setInterval(loadTasks, 3000);
+</script>
+</body>
+</html>

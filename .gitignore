@@ -1,0 +1,13 @@
+__pycache__/
+.pytest_cache/
+*.py[cod]
+*.log
+*.pid
+.DS_Store
+outputs/
+.tools/
+
+# Optional locally installed third-party tools. Users install these separately.
+engines/crest-*/
+engines/orca-*/
+engines/ketcher-*/

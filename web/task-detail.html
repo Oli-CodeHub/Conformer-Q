@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>任务详情 | Conformer-Q</title>
+<style>
+:root{--ink:#182524;--muted:#61706c;--line:#dbe2de;--accent:#086b62;--soft:#e7f2ef;--danger:#9c372e;--pending:#eef1ef}*{box-sizing:border-box}body{margin:0;background:#f6f8f6;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",Arial,sans-serif}header{height:76px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:15px;padding:0 30px}.mark{height:42px;width:42px;background:var(--accent);border-radius:13px;color:#fff;display:grid;place-items:center;font-weight:650}.head h1{font-size:20px;margin:0}.head p{font-size:12px;color:var(--muted);margin:4px 0 0}.nav{margin-left:auto;display:flex;gap:8px}.nav a{padding:9px 13px;border:1px solid var(--line);border-radius:10px;color:var(--accent);text-decoration:none;font-size:13px}
+main{max-width:1360px;margin:0 auto;padding:22px}.steps{display:flex;gap:7px;margin-bottom:18px}.step{padding:8px 13px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:12px;color:var(--muted)}.step.active{background:var(--soft);border-color:#bcd9d3;color:var(--accent);font-weight:600}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:16px}.summary{display:flex;justify-content:space-between;gap:15px}.summary h2{font-size:24px;margin:0 0 8px}.mono{font:12px "SFMono-Regular",Menlo,monospace;color:var(--muted);line-height:1.6}.badge{height:max-content;padding:7px 12px;border-radius:99px;background:var(--soft);color:var(--accent);font-size:12px;font-weight:600}.badge.completed{background:#ecf5e8;color:#47713b}.badge.failed,.badge.stopped{background:#fff1ef;color:var(--danger)}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:18px}.stat{padding:12px;background:#f7f9f7;border-radius:12px}.stat span{display:block;font-size:11px;color:var(--muted);margin-bottom:7px}.stat strong{font-size:15px}.bar{height:7px;background:#edf2ef;border-radius:99px;overflow:hidden;margin-top:18px}.bar i{display:block;height:100%;background:var(--accent)}
+h3{font-size:17px;margin:0 0 17px}.pipeline{display:flex;gap:8px}.phase{position:relative;flex:1;padding:13px 10px;border-radius:12px;background:var(--pending);min-height:78px}.phase span{font-size:11px;color:var(--muted)}.phase strong{display:block;margin-top:8px;font-size:13px}.phase.completed{background:#ecf5e8;color:#47713b}.phase.running{background:var(--soft);color:var(--accent)}.phase.failed,.phase.stopped{background:#fff1ef;color:var(--danger)}
+pre{margin:0;background:#172321;color:#d7e5de;border-radius:12px;padding:15px;font:12px "SFMono-Regular",Menlo,monospace;line-height:1.55;white-space:pre-wrap;min-height:92px}.buttons{display:flex;gap:9px;margin-top:16px}.button{border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:10px;padding:10px 14px;font-size:13px;text-decoration:none;cursor:pointer}.button.secondary{background:#fff;color:var(--accent)}.button.danger{background:#fff;color:var(--danger);border-color:#edc9c5}.notice{display:none;background:var(--soft);color:#315954;padding:12px;border-radius:11px;margin-bottom:16px;font-size:13px}@media(max-width:820px){.stats,.pipeline{display:block}.stat,.phase{margin-top:9px}}
+</style>
+<link rel="stylesheet" href="/styles/workspace.css?v=20260526-2" />
+</head>
+<body>
+<header><div class="mark">MD</div><div class="head"><h1>计算任务详情</h1><p>Calculation monitoring and process trace</p></div><nav class="nav"><a href="/build">新建计算</a><a href="/tasks">任务列表</a></nav></header>
+<main>
+  <div class="steps"><span class="step">1 结构与方法</span><span class="step active">2 计算任务</span><span class="step">3 结果分析</span></div>
+  <div class="notice" id="notice">相同结构和协议已有任务，本次没有重新启动计算。</div>
+  <section class="card" id="summary"><div class="mono">正在读取任务...</div></section>
+  <section class="card"><h3>计算流程</h3><div class="pipeline" id="pipeline"></div></section>
+  <section class="card"><h3>计算日志摘要</h3><pre id="log">等待日志...</pre><div class="buttons" id="actions"></div></section>
+</main>
+<script>
+const runId=decodeURIComponent(location.pathname.split("/").pop());
+const params=new URLSearchParams(location.search);
+if(params.get("duplicate"))document.getElementById("notice").style.display="block";
+function esc(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
+function human(seconds){const m=Math.ceil(seconds/60);return m<60?`${m} 分钟`:`${Math.floor(m/60)} 小时 ${m%60} 分钟`}
+function label(status){return ({running:"运行中",completed:"已完成",failed:"失败",stopped:"已停止",pending:"等待中"})[status]||status}
+function projection(task){
+  if(task.task_type!=="orca"||task.status!=="running"||!task.completed_count)return {dynamic:false,total:task.estimated_seconds,remaining:task.remaining_seconds};
+  const unfinished=Math.max(0,task.selection_count-task.completed_count);
+  const observed=task.observed_seconds_per_conformer||Math.ceil(task.elapsed_seconds/task.completed_count);
+  const remaining=task.dynamic_remaining_seconds??Math.ceil(observed*unfinished);
+  return {dynamic:true,total:task.elapsed_seconds+remaining,remaining,observed,rough:task.dynamic_eta_confidence==="legacy_rough"||!task.dynamic_eta_available};
+}
+async function stopTask(){const response=await fetch(`/api/tasks/${encodeURIComponent(runId)}/stop`,{method:"POST"});const data=await response.json();if(!response.ok){window.alert(data.error||"停止任务失败");return}loadTask()}
+async function terminateAndDeleteTask(){if(!window.confirm("确定终止并删除该任务及其已经产生的结果和日志吗？此操作不可恢复。"))return;let response=await fetch(`/api/tasks/${encodeURIComponent(runId)}/stop`,{method:"POST"});let data=await response.json();if(!response.ok){window.alert(data.error||"终止任务失败");return}response=await fetch(`/api/tasks/${encodeURIComponent(runId)}`,{method:"DELETE"});data=await response.json();if(!response.ok){window.alert(data.error||"任务已终止，但删除失败");loadTask();return}window.location.href="/tasks"}
+async function deleteTask(){if(!window.confirm("确定删除这个历史任务及其全部结果文件吗？此操作不可恢复。"))return;const response=await fetch(`/api/tasks/${encodeURIComponent(runId)}`,{method:"DELETE"});const data=await response.json();if(!response.ok){window.alert(data.error||"删除失败");return}window.location.href="/tasks"}
+async function loadTask(){
+  const response=await fetch(`/api/tasks/${encodeURIComponent(runId)}`), task=await response.json();
+  if(!response.ok){document.getElementById("summary").textContent=task.error;return}
+  const eta=projection(task);
+  const remain=eta.dynamic?human(eta.remaining):task.estimate_exceeded?"已超过初始预估":task.status==="running"?human(task.remaining_seconds):"-";
+  const etaTitle=eta.dynamic?`动态预计剩余${eta.rough?"（粗估）":""}`:"预计剩余";
+  const dynamicTotal=eta.dynamic?`<div class="stat"><span>动态预计总耗时</span><strong>${human(eta.total)}</strong></div>`:"";
+  const etaExplanation=eta.dynamic?`<br>动态 ETA：按已完成构象观测耗时估算，每个约 ${human(eta.observed)}${eta.rough?"；本任务开始时尚未记录逐构象时间，因此这是偏保守的粗估。":""}`:"";
+  const environmentTitle=task.task_type==="orca"?"精修环境":"采样环境";
+  document.getElementById("summary").innerHTML=`<div class="summary"><div><h2>${esc(task.name)}</h2><div class="mono">${esc(task.run_id)}<br>${esc(task.canonical_smiles)}<br>${esc(task.method)} · ${esc(task.sampling_environment_label)}</div></div><span class="badge ${task.status}">${label(task.status)}</span></div><div class="stats"><div class="stat"><span>当前阶段</span><strong>${esc(task.progress)}</strong></div><div class="stat"><span>${environmentTitle}</span><strong>${esc(task.sampling_environment_label)}</strong></div><div class="stat"><span>初始预计总耗时</span><strong>${human(task.estimated_seconds)}</strong></div>${dynamicTotal}<div class="stat"><span>${etaTitle}</span><strong>${remain}</strong></div></div><div class="bar"><i style="width:${task.status==="completed"?100:Math.min(96,Math.round(task.elapsed_seconds/eta.total*100))}%"></i></div><p class="mono">已运行：${human(task.elapsed_seconds)} · 初始估算依据：${esc(task.estimate_basis)}${etaExplanation}</p>`;
+  document.getElementById("pipeline").innerHTML=task.pipeline.map(step=>`<div class="phase ${step.status}"><span>${label(step.status)}</span><strong>${esc(step.label)}</strong></div>`).join("");
+  document.getElementById("log").textContent=task.log_excerpt.length?task.log_excerpt.join("\n"):"任务尚未产生可显示日志。";
+  const hasPartialResult=task.task_type==="orca"&&task.status==="stopped"&&task.completed_count>0;
+  document.getElementById("actions").innerHTML=task.status==="completed"?`<a class="button" href="/results/${encodeURIComponent(runId)}">进入结果分析</a><button class="button danger" onclick="deleteTask()">删除历史任务</button>`:task.status==="running"?`<button class="button secondary" onclick="stopTask()">停止当前任务</button><button class="button danger" onclick="terminateAndDeleteTask()">终止并删除任务</button>`:hasPartialResult?`<a class="button" href="/results/${encodeURIComponent(runId)}">查看已完成部分结果</a><button class="button danger" onclick="deleteTask()">删除历史任务</button>`:`<button class="button danger" onclick="deleteTask()">删除历史任务</button>`;
+}
+loadTask();
+setInterval(loadTask,3000);
+</script></body></html>

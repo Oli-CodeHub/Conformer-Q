@@ -1,0 +1,10 @@
+name: conformer-q
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - flask>=3.0
+  - rdkit>=2024.03
+  - numpy>=1.26
+  - pytest>=8.0
+  - pip
